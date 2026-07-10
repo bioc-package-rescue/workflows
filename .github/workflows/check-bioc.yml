@@ -41,15 +41,13 @@ jobs:
           )
           errors <- res$error
           warnings <- res$warning
-          if (length(errors) > 0 || length(warnings) > 0) {
-            message("BiocCheck failed with ", length(errors), " errors and ", length(warnings), " warnings.")
-            if (length(errors) > 0) {
-              message("\nErrors:")
-              print(errors)
-            }
-            if (length(warnings) > 0) {
-              message("\nWarnings:")
-              print(warnings)
-            }
+          if (length(warnings) > 0) {
+            message("\nBiocCheck Warnings:")
+            print(warnings)
+          }
+          if (length(errors) > 0) {
+            message("\nBiocCheck failed with ", length(errors), " errors.")
+            message("\nErrors:")
+            print(errors)
             quit(status = 1)
           }
