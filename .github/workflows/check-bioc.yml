@@ -6,16 +6,9 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
-    container: ${{ matrix.config.image }}
+    container: bioconductor/bioconductor_docker:devel
 
-    name: ${{ matrix.config.bioc }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - { bioc: 'release', image: 'bioconductor/bioconductor_docker:RELEASE_3_23' }
-          - { bioc: 'devel',   image: 'bioconductor/bioconductor_docker:devel'         }
+    name: devel
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
