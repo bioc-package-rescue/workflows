@@ -41,8 +41,22 @@ jobs:
       - name: BiocCheck
         shell: Rscript {0}
         run: |
-          BiocCheck::BiocCheck(
+          res <- BiocCheck::BiocCheck(
             package        = ".",
             `new-package`  = FALSE,
             `no-check-bioc-help` = TRUE
           )
+          errors <- res$error
+          warnings <- res$warning
+          if (length(errors) > 0 || length(warnings) > 0) {
+            message("BiocCheck failed with ", length(errors), " errors and ", length(warnings), " warnings.")
+            if (length(errors) > 0) {
+              message("\nErrors:")
+              print(errors)
+            }
+            if (length(warnings) > 0) {
+              message("\nWarnings:")
+              print(warnings)
+            }
+            quit(status = 1)
+          }
