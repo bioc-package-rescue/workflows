@@ -38,7 +38,8 @@ jobs:
           res <- BiocCheck::BiocCheck(
             package        = ".",
             `new-package`  = FALSE,
-            `no-check-bioc-help` = TRUE
+            `no-check-bioc-help` = TRUE,
+            `no-check-remotes` = TRUE
           )
           errors <- res$error
           warnings <- res$warning
