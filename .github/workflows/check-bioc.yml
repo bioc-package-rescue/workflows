@@ -4,6 +4,41 @@ on:
   workflow_call:
 
 jobs:
+  # Rescue changes must sit on top of the package's devel branch on
+  # git.bioconductor.org, in a linear history. Run
+  # bioc-rescue-dashboard/scripts/sync_repos.py <pkg> --push to fix a failure.
+  bioc-sync:
+    runs-on: ubuntu-latest
+    name: bioc-sync
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Check branch is synced with git.bioconductor.org devel
+        shell: bash
+        run: |
+          pkg=$(sed -n 's/^Package:[[:space:]]*//p' DESCRIPTION | tr -d '[:space:]')
+          url="https://git.bioconductor.org/packages/${pkg}"
+          if ! git fetch --quiet "$url" devel; then
+            echo "::warning::Could not fetch devel from $url; skipping the sync check."
+            exit 0
+          fi
+          bioc=$(git rev-parse FETCH_HEAD)
+          if ! git merge-base --is-ancestor "$bioc" HEAD; then
+            echo "::error::Not synced: HEAD does not contain $url devel (${bioc:0:8}). Run sync_repos.py ${pkg} --push, then rebase this branch."
+            exit 1
+          fi
+          merges=$(git rev-list --merges --count "$bioc"..HEAD)
+          if [ "$merges" -gt 0 ]; then
+            echo "::error::$merges merge commit(s) on top of Bioconductor devel; rescue history must be linear. Run sync_repos.py ${pkg} --push, then rebase this branch."
+            git log --merges --oneline "$bioc"..HEAD
+            exit 1
+          fi
+          echo "Synced with $url devel (${bioc:0:8}); $(git rev-list --count "$bioc"..HEAD) commit(s) on top, no merges."
+
   check:
     runs-on: ubuntu-latest
     container: bioconductor/bioconductor_docker:devel
